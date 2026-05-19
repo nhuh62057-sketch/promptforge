@@ -1,0 +1,2579 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PromptForge — Nơi rèn prompt cùng nhau</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=DM+Sans:opsz,wght@9..40,300..700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+  :root {
+    --cream: #FAF6EE;
+    --cream-2: #F2EBDD;
+    --paper: #FFFDF7;
+    --ink: #1A1410;
+    --ink-2: #2A211B;
+    --coal: #3A2F26;
+    --ash: #6B5D50;
+    --smoke: #9C8B7A;
+    --ember: #D94E1F;
+    --ember-dark: #B33C12;
+    --ember-light: #F47A4F;
+    --spark: #E8B450;
+    --forge-glow: #FF8C42;
+    --border: rgba(26, 20, 16, 0.12);
+    --border-strong: rgba(26, 20, 16, 0.25);
+    --shadow-soft: 0 4px 24px rgba(26, 20, 16, 0.06);
+    --shadow-med: 0 12px 40px rgba(26, 20, 16, 0.10);
+    --shadow-strong: 0 24px 60px rgba(26, 20, 16, 0.18);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    line-height: 1.55;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.35;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.1 0 0 0 0 0.08 0 0 0 0 0.06 0 0 0 0.04 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  ::selection { background: var(--ember); color: var(--cream); }
+
+  /* ====== NAVBAR ====== */
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(250, 246, 238, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-inner {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 18px 40px;
+    display: flex;
+    align-items: center;
+    gap: 32px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 23px;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  .logo-mark {
+    width: 36px;
+    height: 36px;
+    background: var(--ink);
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    color: var(--ember);
+    font-size: 15px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .logo-mark::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 30% 70%, var(--forge-glow), transparent 60%);
+    opacity: 0.6;
+  }
+
+  .logo-mark i { position: relative; z-index: 1; }
+
+  .nav-links {
+    display: flex;
+    gap: 4px;
+    list-style: none;
+    flex: 1;
+    margin-left: 8px;
+  }
+
+  .nav-links a {
+    color: var(--ink-2);
+    text-decoration: none;
+    font-size: 14.5px;
+    font-weight: 500;
+    padding: 9px 14px;
+    border-radius: 8px;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+
+  .nav-links a:hover { background: var(--cream-2); color: var(--ink); }
+  .nav-links a.active { background: var(--ink); color: var(--cream); }
+
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .search-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 14px;
+    width: 230px;
+    transition: all 0.2s;
+  }
+
+  .search-box:focus-within {
+    border-color: var(--ember);
+    box-shadow: 0 0 0 3px rgba(217, 78, 31, 0.15);
+    width: 280px;
+  }
+
+  .search-box i { color: var(--smoke); font-size: 13px; }
+  .search-box input {
+    border: none;
+    outline: none;
+    background: transparent;
+    flex: 1;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--ink);
+    min-width: 0;
+  }
+  .search-box input::placeholder { color: var(--smoke); }
+
+  .btn {
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 10px 18px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .btn-ghost { background: transparent; color: var(--ink); }
+  .btn-ghost:hover { background: var(--cream-2); }
+
+  .btn-primary {
+    background: var(--ink);
+    color: var(--cream);
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-primary::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, transparent, rgba(255, 140, 66, 0.4), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.6s;
+  }
+  .btn-primary:hover::before { transform: translateX(100%); }
+  .btn-primary:hover { background: var(--coal); transform: translateY(-1px); }
+
+  .btn-ember {
+    background: var(--ember);
+    color: var(--cream);
+    box-shadow: 0 4px 14px rgba(217, 78, 31, 0.3);
+  }
+  .btn-ember:hover {
+    background: var(--ember-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(217, 78, 31, 0.4);
+  }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--ink);
+    border: 1.5px solid var(--ink);
+  }
+  .btn-outline:hover { background: var(--ink); color: var(--cream); }
+
+  /* ====== HERO ====== */
+  .hero {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 70px 40px 50px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1.35fr 1fr;
+    gap: 60px;
+    align-items: center;
+  }
+
+  .hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--paper);
+    border: 1px solid var(--border);
+    padding: 7px 14px;
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--coal);
+    margin-bottom: 26px;
+  }
+
+  .hero-tag .dot {
+    width: 7px;
+    height: 7px;
+    background: var(--ember);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(217, 78, 31, 0.6); }
+    50% { box-shadow: 0 0 0 7px rgba(217, 78, 31, 0); }
+  }
+
+  .hero h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-size: clamp(46px, 5.5vw, 72px);
+    line-height: 1.02;
+    letter-spacing: -0.035em;
+    color: var(--ink);
+    margin-bottom: 24px;
+  }
+
+  .hero h1 em {
+    font-style: italic;
+    color: var(--ember);
+    font-weight: 300;
+    position: relative;
+  }
+
+  .hero h1 em::after {
+    content: '';
+    position: absolute;
+    bottom: 0.08em;
+    left: 0;
+    right: 0;
+    height: 0.35em;
+    background: rgba(232, 180, 80, 0.35);
+    z-index: -1;
+    transform: skewX(-8deg);
+  }
+
+  .hero p {
+    font-size: 18px;
+    color: var(--ash);
+    max-width: 540px;
+    margin-bottom: 34px;
+    line-height: 1.6;
+  }
+
+  .hero-cta {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 44px;
+    flex-wrap: wrap;
+  }
+  .hero-cta .btn { padding: 14px 22px; font-size: 15px; }
+
+  .hero-stats {
+    display: flex;
+    gap: 42px;
+    padding-top: 30px;
+    border-top: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+
+  .hero-stat-num {
+    font-family: 'Fraunces', serif;
+    font-size: 30px;
+    font-weight: 500;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  .hero-stat-label {
+    font-size: 12px;
+    color: var(--ash);
+    margin-top: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* ====== HERO VISUAL ====== */
+  .hero-visual {
+    position: relative;
+    aspect-ratio: 1 / 1.1;
+  }
+
+  .anvil-card {
+    position: absolute;
+    background: var(--ink);
+    color: var(--cream);
+    border-radius: 18px;
+    padding: 20px 22px;
+    box-shadow: var(--shadow-strong);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 1.7;
+    transition: transform 0.4s;
+  }
+
+  .anvil-card:hover { transform: scale(1.03) !important; z-index: 10 !important; }
+
+  .anvil-card.c1 {
+    top: 0;
+    left: 0;
+    width: 78%;
+    transform: rotate(-3deg);
+    z-index: 3;
+  }
+
+  .anvil-card.c2 {
+    top: 32%;
+    right: 0;
+    width: 72%;
+    transform: rotate(4deg);
+    z-index: 2;
+    background: var(--cream-2);
+    color: var(--ink);
+  }
+
+  .anvil-card.c3 {
+    bottom: 0;
+    left: 8%;
+    width: 76%;
+    transform: rotate(-2deg);
+    z-index: 1;
+    background: var(--ember);
+    color: var(--cream);
+  }
+
+  .anvil-card .card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    opacity: 0.7;
+  }
+
+  .anvil-card .card-badge {
+    background: rgba(255, 255, 255, 0.15);
+    padding: 3px 8px;
+    border-radius: 100px;
+    font-size: 9.5px;
+    opacity: 1;
+  }
+  .c2 .card-badge { background: rgba(26, 20, 16, 0.1); }
+
+  .anvil-card .card-body {
+    font-size: 11.5px;
+    line-height: 1.65;
+  }
+
+  .anvil-card .typing-cursor {
+    display: inline-block;
+    width: 7px;
+    height: 12px;
+    background: currentColor;
+    margin-left: 2px;
+    animation: blink 1s infinite;
+    vertical-align: middle;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .spark {
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    background: var(--spark);
+    border-radius: 50%;
+    box-shadow: 0 0 12px var(--spark);
+    z-index: 5;
+  }
+  .spark.s1 { top: 15%; right: 18%; animation: float 4s infinite ease-in-out; }
+  .spark.s2 { top: 50%; right: 3%; animation: float 5s infinite ease-in-out 1s; }
+  .spark.s3 { bottom: 22%; right: 32%; animation: float 6s infinite ease-in-out 2s; }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); opacity: 1; }
+    50% { transform: translateY(-18px); opacity: 0.4; }
+  }
+
+  /* ====== TRUST BAR ====== */
+  .trust-bar {
+    max-width: 1320px;
+    margin: 30px auto 0;
+    padding: 26px 40px;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .trust-label {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 15px;
+    color: var(--coal);
+  }
+
+  .trust-logos {
+    display: flex;
+    gap: 30px;
+    align-items: center;
+    color: var(--smoke);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    font-size: 14px;
+    opacity: 0.7;
+  }
+
+  /* ====== SECTIONS ====== */
+  section { position: relative; z-index: 2; }
+
+  .section {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 90px 40px;
+  }
+
+  .section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 46px;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+
+  .section-head-text { max-width: 620px; }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--ember);
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+
+  .eyebrow::before {
+    content: '';
+    width: 24px;
+    height: 1px;
+    background: var(--ember);
+  }
+
+  .section h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-size: clamp(34px, 4vw, 50px);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+
+  .section h2 em { font-style: italic; color: var(--ember); }
+
+  .section-head p {
+    color: var(--ash);
+    font-size: 16px;
+    margin-top: 14px;
+  }
+
+  .section-link {
+    color: var(--ink);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border: 1px solid var(--border-strong);
+    border-radius: 100px;
+    transition: all 0.2s;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .section-link:hover {
+    background: var(--ink);
+    color: var(--cream);
+    transform: translateX(4px);
+  }
+
+  /* ====== FILTER PILLS ====== */
+  .filter-pills {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+
+  .pill {
+    padding: 8px 16px;
+    border-radius: 100px;
+    background: var(--paper);
+    border: 1px solid var(--border);
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--coal);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+
+  .pill:hover { border-color: var(--ink); }
+  .pill.active { background: var(--ink); color: var(--cream); border-color: var(--ink); }
+
+  /* ====== PROMPT CARDS ====== */
+  .prompts-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 22px;
+  }
+
+  .prompt-card {
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 26px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    position: relative;
+    overflow: hidden;
+    min-height: 280px;
+  }
+
+  .prompt-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--ember);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s;
+  }
+
+  .prompt-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-med);
+    border-color: var(--border-strong);
+  }
+
+  .prompt-card:hover::before { transform: scaleX(1); }
+
+  .pc-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .pc-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: var(--cream-2);
+    display: grid;
+    place-items: center;
+    font-size: 17px;
+    color: var(--ember);
+  }
+
+  .pc-rating {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--coal);
+  }
+
+  .pc-rating i { color: var(--spark); }
+
+  .pc-title {
+    font-family: 'Fraunces', serif;
+    font-size: 21px;
+    font-weight: 500;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+
+  .pc-desc {
+    color: var(--ash);
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  .pc-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .pc-tag {
+    background: var(--cream-2);
+    color: var(--coal);
+    font-size: 11.5px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 100px;
+  }
+
+  .pc-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px dashed var(--border);
+    font-size: 13px;
+  }
+
+  .pc-author {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--coal);
+  }
+
+  .pc-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--ember), var(--spark));
+    display: grid;
+    place-items: center;
+    color: var(--cream);
+    font-weight: 600;
+    font-size: 11px;
+  }
+
+  .pc-stats {
+    color: var(--smoke);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+  }
+
+  /* ====== CAREER TRACKS — Dark section ====== */
+  .tracks-section {
+    background: var(--ink);
+    color: var(--cream);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .tracks-section::before {
+    content: '';
+    position: absolute;
+    top: -200px;
+    right: -200px;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(217, 78, 31, 0.18), transparent 70%);
+    pointer-events: none;
+  }
+
+  .tracks-section h2 { color: var(--cream); }
+  .tracks-section h2 em { color: var(--spark); }
+  .tracks-section .eyebrow { color: var(--spark); }
+  .tracks-section .eyebrow::before { background: var(--spark); }
+  .tracks-section .section-head p { color: var(--smoke); }
+
+  .tracks-section .section-link {
+    color: var(--cream);
+    border-color: rgba(250, 246, 238, 0.3);
+  }
+
+  .tracks-section .section-link:hover {
+    background: var(--cream);
+    color: var(--ink);
+    border-color: var(--cream);
+  }
+
+  .tracks-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+  }
+
+  .track-card {
+    background: rgba(250, 246, 238, 0.04);
+    border: 1px solid rgba(250, 246, 238, 0.1);
+    border-radius: 16px;
+    padding: 24px;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .track-card:hover {
+    background: rgba(250, 246, 238, 0.08);
+    border-color: var(--ember);
+    transform: translateY(-3px);
+  }
+
+  .track-card::after {
+    content: '→';
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    font-size: 18px;
+    color: var(--smoke);
+    transition: all 0.3s;
+  }
+
+  .track-card:hover::after {
+    color: var(--ember);
+    transform: translate(4px, -2px);
+  }
+
+  .track-emoji {
+    font-size: 30px;
+    margin-bottom: 14px;
+  }
+
+  .track-name {
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--cream);
+    margin-bottom: 6px;
+  }
+
+  .track-duration {
+    font-size: 13px;
+    color: var(--smoke);
+    margin-bottom: 18px;
+  }
+
+  .track-progress-bar {
+    height: 4px;
+    background: rgba(250, 246, 238, 0.1);
+    border-radius: 100px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+
+  .track-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--ember), var(--spark));
+    border-radius: 100px;
+    transition: width 1s ease;
+  }
+
+  .track-learners {
+    font-size: 11.5px;
+    color: var(--smoke);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ====== HOW IT WORKS ====== */
+  .how-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    counter-reset: step;
+  }
+
+  .how-step {
+    position: relative;
+    padding-top: 20px;
+  }
+
+  .how-step::before {
+    counter-increment: step;
+    content: counter(step, decimal-leading-zero);
+    font-family: 'Fraunces', serif;
+    font-size: 54px;
+    font-weight: 300;
+    color: var(--ember);
+    line-height: 1;
+    font-style: italic;
+  }
+
+  .how-step h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 23px;
+    font-weight: 500;
+    margin: 14px 0 10px;
+    letter-spacing: -0.01em;
+  }
+
+  .how-step p {
+    color: var(--ash);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  /* ====== CHALLENGE BANNER ====== */
+  .challenge-banner {
+    background: linear-gradient(135deg, var(--ember) 0%, var(--ember-dark) 100%);
+    color: var(--cream);
+    border-radius: 24px;
+    padding: 52px;
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 50px;
+    align-items: center;
+  }
+
+  .challenge-banner::before {
+    content: '';
+    position: absolute;
+    top: -100px;
+    right: -100px;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.18), transparent 70%);
+  }
+
+  .challenge-banner::after {
+    content: '🔥';
+    position: absolute;
+    bottom: -50px;
+    right: 30px;
+    font-size: 220px;
+    opacity: 0.1;
+    line-height: 1;
+    pointer-events: none;
+  }
+
+  .challenge-content { position: relative; z-index: 1; }
+
+  .challenge-banner .eyebrow {
+    color: rgba(250, 246, 238, 0.9);
+    margin-bottom: 12px;
+  }
+
+  .challenge-banner .eyebrow::before {
+    background: rgba(250, 246, 238, 0.6);
+  }
+
+  .challenge-banner h2 {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(32px, 3.5vw, 44px);
+    font-weight: 400;
+    line-height: 1.1;
+    color: var(--cream);
+    margin-bottom: 20px;
+  }
+
+  .challenge-banner p {
+    font-size: 16px;
+    opacity: 0.92;
+    margin-bottom: 26px;
+    max-width: 460px;
+  }
+
+  .challenge-meta {
+    display: flex;
+    gap: 28px;
+    margin-bottom: 28px;
+    font-size: 14px;
+    flex-wrap: wrap;
+  }
+
+  .challenge-meta div {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-light {
+    background: var(--cream);
+    color: var(--ember);
+    font-weight: 600;
+    padding: 14px 24px;
+    font-size: 15px;
+  }
+  .btn-light:hover { background: var(--paper); transform: translateY(-1px); }
+
+  .challenge-visual {
+    position: relative;
+    z-index: 1;
+  }
+
+  .leaderboard-mini {
+    background: rgba(26, 20, 16, 0.4);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(250, 246, 238, 0.2);
+    border-radius: 16px;
+    padding: 24px;
+  }
+
+  .leaderboard-mini h4 {
+    font-family: 'Fraunces', serif;
+    font-size: 17px;
+    margin-bottom: 14px;
+    font-weight: 500;
+  }
+
+  .lb-entry {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(250, 246, 238, 0.1);
+    font-size: 14px;
+  }
+
+  .lb-entry:last-child { border-bottom: none; }
+
+  .lb-rank {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    display: grid;
+    place-items: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    background: rgba(250, 246, 238, 0.1);
+  }
+
+  .lb-rank.gold { background: var(--spark); color: var(--ink); }
+  .lb-rank.silver { background: rgba(250, 246, 238, 0.6); color: var(--ink); }
+  .lb-rank.bronze { background: #C8804A; color: var(--cream); }
+
+  .lb-name { flex: 1; font-weight: 500; }
+  .lb-score { font-family: 'JetBrains Mono', monospace; font-size: 12px; opacity: 0.8; }
+
+  /* ====== TESTIMONIAL ====== */
+  .testimonial-section { padding: 90px 40px; }
+
+  .testimonial {
+    max-width: 900px;
+    margin: 0 auto;
+    text-align: center;
+    position: relative;
+  }
+
+  .quote-mark {
+    font-family: 'Fraunces', serif;
+    font-size: 120px;
+    color: var(--ember);
+    line-height: 0.5;
+    opacity: 0.25;
+    margin-bottom: -20px;
+  }
+
+  .testimonial blockquote {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(24px, 2.8vw, 34px);
+    font-weight: 400;
+    line-height: 1.3;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+    margin-bottom: 32px;
+  }
+
+  .testimonial blockquote em { font-style: italic; color: var(--ember); }
+
+  .author-block {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .author-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--ember), var(--spark));
+    display: grid;
+    place-items: center;
+    color: var(--cream);
+    font-weight: 600;
+    font-size: 18px;
+    font-family: 'Fraunces', serif;
+  }
+
+  .author-info { text-align: left; }
+  .author-name { font-weight: 600; color: var(--ink); }
+  .author-role { font-size: 13px; color: var(--ash); }
+
+  /* ====== FOOTER ====== */
+  footer {
+    background: var(--ink);
+    color: var(--cream);
+    padding: 80px 40px 40px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .footer-inner {
+    max-width: 1320px;
+    margin: 0 auto;
+  }
+
+  .footer-top {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1.2fr;
+    gap: 50px;
+    padding-bottom: 50px;
+    border-bottom: 1px solid rgba(250, 246, 238, 0.1);
+  }
+
+  .footer-brand .logo { color: var(--cream); }
+  .footer-brand p {
+    color: var(--smoke);
+    font-size: 14.5px;
+    margin-top: 20px;
+    max-width: 280px;
+    line-height: 1.6;
+  }
+
+  .footer-col h5 {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--spark);
+    margin-bottom: 18px;
+    font-weight: 600;
+  }
+
+  .footer-col a {
+    display: block;
+    color: var(--smoke);
+    text-decoration: none;
+    font-size: 14.5px;
+    padding: 6px 0;
+    transition: color 0.2s;
+    cursor: pointer;
+  }
+
+  .footer-col a:hover { color: var(--cream); }
+
+  .newsletter h5 { color: var(--spark); }
+  .newsletter p { color: var(--smoke); font-size: 13.5px; margin-bottom: 14px; }
+
+  .newsletter-form {
+    display: flex;
+    background: rgba(250, 246, 238, 0.05);
+    border: 1px solid rgba(250, 246, 238, 0.15);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .newsletter-form input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 10px 14px;
+    font-family: inherit;
+    font-size: 13.5px;
+    color: var(--cream);
+    min-width: 0;
+  }
+  .newsletter-form input::placeholder { color: var(--smoke); }
+
+  .newsletter-form button {
+    background: var(--ember);
+    border: none;
+    color: var(--cream);
+    padding: 0 16px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.2s;
+  }
+  .newsletter-form button:hover { background: var(--ember-dark); }
+
+  .footer-bottom {
+    padding-top: 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    color: var(--smoke);
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .social-links {
+    display: flex;
+    gap: 10px;
+  }
+
+  .social-links a {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(250, 246, 238, 0.05);
+    display: grid;
+    place-items: center;
+    color: var(--smoke);
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+
+  .social-links a:hover {
+    background: var(--ember);
+    color: var(--cream);
+  }
+
+  /* ====== MODAL ====== */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(26, 20, 16, 0.6);
+    backdrop-filter: blur(8px);
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .modal-backdrop.active {
+    display: flex;
+    opacity: 1;
+  }
+
+  .modal {
+    background: var(--paper);
+    border-radius: 22px;
+    width: 100%;
+    max-width: 880px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-strong);
+    transform: scale(0.95);
+    transition: transform 0.3s;
+  }
+
+  .modal-backdrop.active .modal { transform: scale(1); }
+
+  .modal-small { max-width: 460px; }
+
+  .modal-head {
+    padding: 28px 32px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+  }
+
+  .modal-head-text { flex: 1; }
+
+  .modal-eyebrow {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--ember);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .modal-head h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 26px;
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+
+  .modal-close {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: var(--cream-2);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    color: var(--ink);
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .modal-close:hover { background: var(--ink); color: var(--cream); transform: rotate(90deg); }
+
+  .modal-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    background: var(--cream);
+  }
+
+  .modal-tab {
+    padding: 16px 20px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ash);
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .modal-tab:hover { color: var(--ink); }
+  .modal-tab.active { color: var(--ink); border-bottom-color: var(--ember); }
+
+  .modal-body {
+    padding: 28px 32px;
+  }
+
+  .tab-panel { display: none; animation: fadeIn 0.3s; }
+  .tab-panel.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .prompt-block {
+    background: var(--ink);
+    color: var(--cream);
+    border-radius: 14px;
+    padding: 22px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13.5px;
+    line-height: 1.7;
+    position: relative;
+    margin-bottom: 20px;
+    white-space: pre-wrap;
+  }
+
+  .copy-btn {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: rgba(250, 246, 238, 0.1);
+    border: 1px solid rgba(250, 246, 238, 0.2);
+    color: var(--cream);
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 12px;
+    transition: all 0.2s;
+  }
+  .copy-btn:hover { background: var(--ember); border-color: var(--ember); }
+
+  .why-block {
+    background: var(--cream-2);
+    border-left: 3px solid var(--ember);
+    padding: 18px 22px;
+    border-radius: 0 12px 12px 0;
+    margin-bottom: 20px;
+  }
+
+  .why-block h4 {
+    font-family: 'Fraunces', serif;
+    font-size: 17px;
+    margin-bottom: 10px;
+    color: var(--ink);
+  }
+
+  .why-list { list-style: none; padding: 0; }
+  .why-list li {
+    padding: 7px 0 7px 26px;
+    position: relative;
+    font-size: 14px;
+    color: var(--coal);
+    line-height: 1.55;
+  }
+  .why-list li::before {
+    content: '✦';
+    position: absolute;
+    left: 0;
+    color: var(--ember);
+    font-size: 14px;
+  }
+
+  /* Try Live panel */
+  .trylive-controls {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+
+  .model-select {
+    flex: 1;
+    min-width: 180px;
+    padding: 11px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 14px;
+    background: var(--paper);
+    cursor: pointer;
+    outline: none;
+  }
+  .model-select:focus { border-color: var(--ember); }
+
+  .input-area {
+    width: 100%;
+    min-height: 110px;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13.5px;
+    background: var(--paper);
+    resize: vertical;
+    outline: none;
+    margin-bottom: 14px;
+    line-height: 1.6;
+    color: var(--ink);
+  }
+  .input-area:focus { border-color: var(--ember); box-shadow: 0 0 0 3px rgba(217, 78, 31, 0.12); }
+
+  .output-area {
+    background: var(--cream-2);
+    border-radius: 12px;
+    padding: 20px;
+    min-height: 120px;
+    font-size: 14.5px;
+    line-height: 1.7;
+    color: var(--coal);
+    margin-top: 18px;
+    border: 1px dashed var(--border-strong);
+  }
+
+  .output-empty {
+    color: var(--smoke);
+    font-style: italic;
+    text-align: center;
+    padding: 30px 0;
+  }
+
+  .typing-indicator {
+    display: inline-flex;
+    gap: 4px;
+    align-items: center;
+  }
+  .typing-indicator span {
+    width: 7px;
+    height: 7px;
+    background: var(--ember);
+    border-radius: 50%;
+    animation: typing 1.2s infinite;
+  }
+  .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes typing {
+    0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+    30% { opacity: 1; transform: translateY(-4px); }
+  }
+
+  /* Login / Signup */
+  .auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .auth-form label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--coal);
+    margin-bottom: 4px;
+  }
+
+  .auth-form input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 14.5px;
+    background: var(--paper);
+    outline: none;
+    color: var(--ink);
+  }
+  .auth-form input:focus { border-color: var(--ember); box-shadow: 0 0 0 3px rgba(217, 78, 31, 0.12); }
+
+  .form-group { display: flex; flex-direction: column; }
+
+  .auth-divider {
+    text-align: center;
+    color: var(--smoke);
+    font-size: 13px;
+    margin: 8px 0;
+    position: relative;
+  }
+  .auth-divider::before, .auth-divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: calc(50% - 30px);
+    height: 1px;
+    background: var(--border);
+  }
+  .auth-divider::before { left: 0; }
+  .auth-divider::after { right: 0; }
+
+  .social-auth {
+    display: flex;
+    gap: 10px;
+  }
+
+  .social-btn {
+    flex: 1;
+    padding: 11px;
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13.5px;
+    color: var(--ink);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+  }
+  .social-btn:hover { border-color: var(--ink); background: var(--cream-2); }
+
+  .auth-switch {
+    text-align: center;
+    font-size: 13.5px;
+    color: var(--ash);
+    margin-top: 6px;
+  }
+  .auth-switch a { color: var(--ember); font-weight: 600; cursor: pointer; text-decoration: none; }
+  .auth-switch a:hover { text-decoration: underline; }
+
+  /* ====== TOAST ====== */
+  .toast-container {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 300;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+  }
+
+  .toast {
+    background: var(--ink);
+    color: var(--cream);
+    padding: 14px 20px;
+    border-radius: 12px;
+    box-shadow: var(--shadow-strong);
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 280px;
+    max-width: 380px;
+    animation: slideUp 0.3s ease-out;
+    border-left: 3px solid var(--ember);
+    pointer-events: auto;
+  }
+
+  .toast.success { border-left-color: #4ADE80; }
+  .toast.success i { color: #4ADE80; }
+  .toast.error { border-left-color: #EF4444; }
+  .toast.error i { color: #EF4444; }
+  .toast i { color: var(--ember); font-size: 16px; }
+
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .toast.removing {
+    animation: slideDown 0.3s forwards;
+  }
+  @keyframes slideDown {
+    to { transform: translateY(20px); opacity: 0; }
+  }
+
+  /* ====== RESPONSIVE ====== */
+  @media (max-width: 1100px) {
+    .nav-inner { padding: 16px 24px; }
+    .search-box { width: 180px; }
+    .hero, .section { padding-left: 24px; padding-right: 24px; }
+    .hero-grid { grid-template-columns: 1fr; gap: 60px; }
+    .hero-visual { max-width: 500px; }
+    .prompts-grid { grid-template-columns: repeat(2, 1fr); }
+    .tracks-grid { grid-template-columns: repeat(2, 1fr); }
+    .how-grid { grid-template-columns: repeat(2, 1fr); }
+    .challenge-banner { grid-template-columns: 1fr; padding: 36px; }
+    .footer-top { grid-template-columns: 1fr 1fr; gap: 32px; }
+  }
+
+  @media (max-width: 700px) {
+    .nav-links, .search-box { display: none; }
+    .prompts-grid, .tracks-grid, .how-grid { grid-template-columns: 1fr; }
+    .footer-top { grid-template-columns: 1fr; }
+    .modal-tabs { padding: 0 16px; overflow-x: auto; }
+    .modal-tab { padding: 14px 12px; font-size: 13px; }
+  }
+
+  /* Stagger animation for cards on page load */
+  .fade-up {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeUp 0.6s forwards;
+  }
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<!-- ====== NAVBAR ====== -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="#" class="logo" onclick="scrollToTop(event)">
+      <span class="logo-mark"><i class="fas fa-hammer"></i></span>
+      PromptForge
+    </a>
+    <ul class="nav-links">
+      <li><a class="nav-link active" data-section="home" onclick="navClick(event, 'home')">Khám phá</a></li>
+      <li><a class="nav-link" data-section="tracks" onclick="navClick(event, 'tracks')">Lộ trình</a></li>
+      <li><a class="nav-link" data-section="community" onclick="navClick(event, 'community')">Cộng đồng</a></li>
+      <li><a class="nav-link" data-section="challenge" onclick="navClick(event, 'challenge')">Thử thách</a></li>
+    </ul>
+    <div class="nav-actions">
+      <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input type="text" id="searchInput" placeholder="Tìm prompt, ngành, tác giả..." oninput="onSearch(event)" onkeydown="onSearchEnter(event)">
+      </div>
+      <button class="btn btn-ghost" onclick="openModal('loginModal')">Đăng nhập</button>
+      <button class="btn btn-primary" onclick="openModal('signupModal')">
+        Đăng ký <i class="fas fa-arrow-right" style="font-size:11px;"></i>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- ====== HERO ====== -->
+<section class="hero">
+  <div class="hero-grid">
+    <div>
+      <div class="hero-tag fade-up" style="animation-delay:0.05s;">
+        <span class="dot"></span>
+        287 người đang rèn prompt ngay lúc này
+      </div>
+      <h1 class="fade-up" style="animation-delay:0.15s;">
+        Nơi rèn prompt<br>
+        AI <em>cùng nhau</em>.
+      </h1>
+      <p class="fade-up" style="animation-delay:0.25s;">
+        Khám phá, thử nghiệm và chia sẻ những prompt AI hiệu quả nhất — được kiểm chứng bởi hơn 52,000 sinh viên và người trẻ đi làm. Học từ cộng đồng, không phải từ TikTok.
+      </p>
+      <div class="hero-cta fade-up" style="animation-delay:0.35s;">
+        <button class="btn btn-ember" onclick="scrollToSection('featured')">
+          <i class="fas fa-fire"></i> Khám phá ngay
+        </button>
+        <button class="btn btn-outline" onclick="showToast('🎬 Demo 90 giây đang được chuẩn bị...', 'info')">
+          <i class="fas fa-play"></i> Xem demo 90 giây
+        </button>
+      </div>
+      <div class="hero-stats fade-up" style="animation-delay:0.45s;">
+        <div>
+          <div class="hero-stat-num">12,847</div>
+          <div class="hero-stat-label">Prompts đã rèn</div>
+        </div>
+        <div>
+          <div class="hero-stat-num">234</div>
+          <div class="hero-stat-label">Lộ trình ngành</div>
+        </div>
+        <div>
+          <div class="hero-stat-num">52K+</div>
+          <div class="hero-stat-label">Thợ rèn trẻ</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-visual fade-up" style="animation-delay:0.3s;">
+      <div class="spark s1"></div>
+      <div class="spark s2"></div>
+      <div class="spark s3"></div>
+
+      <div class="anvil-card c1">
+        <div class="card-head">
+          <span><i class="fas fa-circle" style="color:#4ADE80;font-size:8px;"></i> claude_3.7</span>
+          <span class="card-badge">RESEARCH</span>
+        </div>
+        <div class="card-body">
+          You are a senior researcher. Read this paper and extract: (1) the core hypothesis, (2) methodology, (3) limitations<span class="typing-cursor"></span>
+        </div>
+      </div>
+
+      <div class="anvil-card c2">
+        <div class="card-head">
+          <span>💡 WHY IT WORKS</span>
+          <span class="card-badge">v3</span>
+        </div>
+        <div class="card-body" style="font-family:'DM Sans',sans-serif;font-size:12px;">
+          Role-setting forces structured analysis. Numbered outputs prevent hallucination drift.
+        </div>
+      </div>
+
+      <div class="anvil-card c3">
+        <div class="card-head">
+          <span><i class="fas fa-code-branch"></i> FORK · 142×</span>
+          <span class="card-badge">⭐ 4.9</span>
+        </div>
+        <div class="card-body">
+          → SWOT analysis<br>
+          → Competitor matrix<br>
+          → Investment memo<br>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== TRUST BAR ====== -->
+<div class="trust-bar">
+  <span class="trust-label">"Được sinh viên đến từ:"</span>
+  <div class="trust-logos">
+    <span>NEU</span>
+    <span>FTU</span>
+    <span>RMIT</span>
+    <span>UEH</span>
+    <span>HUST</span>
+    <span>VNU</span>
+    <span>BUV</span>
+  </div>
+</div>
+
+<!-- ====== FEATURED PROMPTS ====== -->
+<section class="section" id="featured">
+  <div class="section-head">
+    <div class="section-head-text">
+      <div class="eyebrow">Prompts nổi bật</div>
+      <h2>Prompts <em>kiểm chứng</em><br>bởi cộng đồng</h2>
+      <p>Lọc theo lĩnh vực bạn quan tâm. Mỗi prompt đều có giải thích TẠI SAO nó hoạt động — không chỉ copy, mà còn để học.</p>
+    </div>
+    <a class="section-link" onclick="showToast('🔍 Đang mở trang Khám phá đầy đủ...', 'info')">
+      Xem tất cả <i class="fas fa-arrow-right" style="font-size:11px;"></i>
+    </a>
+  </div>
+
+  <div class="filter-pills">
+    <button class="pill active" data-filter="all" onclick="filterPrompts(event, 'all')">Tất cả</button>
+    <button class="pill" data-filter="marketing" onclick="filterPrompts(event, 'marketing')">📣 Marketing</button>
+    <button class="pill" data-filter="study" onclick="filterPrompts(event, 'study')">🎓 Học tập</button>
+    <button class="pill" data-filter="dev" onclick="filterPrompts(event, 'dev')">💻 Lập trình</button>
+    <button class="pill" data-filter="design" onclick="filterPrompts(event, 'design')">🎨 Thiết kế</button>
+    <button class="pill" data-filter="business" onclick="filterPrompts(event, 'business')">💼 Kinh doanh</button>
+  </div>
+
+  <div class="prompts-grid" id="promptsGrid">
+    <!-- Cards rendered by JS -->
+  </div>
+</section>
+
+<!-- ====== HOW IT WORKS ====== -->
+<section class="section" id="how" style="padding-top:0;">
+  <div class="section-head">
+    <div class="section-head-text">
+      <div class="eyebrow">Cách hoạt động</div>
+      <h2>Bốn bước để <em>rèn nghề</em></h2>
+      <p>Không cần là chuyên gia AI. PromptForge đưa bạn đi từ "copy-paste" tới "thiết kế prompt riêng" theo một lộ trình rõ ràng.</p>
+    </div>
+  </div>
+
+  <div class="how-grid">
+    <div class="how-step">
+      <h3>Khám phá</h3>
+      <p>Duyệt 12,000+ prompt được phân loại theo ngành nghề và xếp hạng bởi cộng đồng. Tìm thấy ngay điều bạn cần.</p>
+    </div>
+    <div class="how-step">
+      <h3>Thử ngay</h3>
+      <p>Nhấn "Try Live" để chạy prompt với AI thật ngay trong website. Không phải copy mù — bạn thấy kết quả trước khi tin.</p>
+    </div>
+    <div class="how-step">
+      <h3>Học hiểu</h3>
+      <p>Mỗi prompt có giải thích tại sao nó hoạt động: role-setting, constraints, format. Bạn học nguyên lý, không chỉ mẹo.</p>
+    </div>
+    <div class="how-step">
+      <h3>Đóng góp</h3>
+      <p>Fork, cải tiến, chia sẻ phiên bản của bạn. Cộng đồng vote. Bạn lên cấp từ Apprentice tới Master Forger.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ====== CAREER TRACKS ====== -->
+<section class="tracks-section" id="tracks-section">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-head-text">
+        <div class="eyebrow">Lộ trình ngành nghề</div>
+        <h2>30 ngày để thành <em>AI-fluent</em></h2>
+        <p>Duolingo cho prompt AI. Mỗi ngày 1 bài học ngắn, được thiết kế riêng cho ngành nghề của bạn. Kết thúc lộ trình = nhận badge công khai trên hồ sơ.</p>
+      </div>
+      <a class="section-link" onclick="showToast('🛤 Đang mở danh sách lộ trình đầy đủ...', 'info')">
+        Xem tất cả lộ trình <i class="fas fa-arrow-right" style="font-size:11px;"></i>
+      </a>
+    </div>
+
+    <div class="tracks-grid" id="tracksGrid">
+      <!-- rendered by JS -->
+    </div>
+  </div>
+</section>
+
+<!-- ====== CHALLENGE BANNER ====== -->
+<section class="section" id="challenge-section">
+  <div class="challenge-banner">
+    <div class="challenge-content">
+      <div class="eyebrow">Thử thách tuần này</div>
+      <h2>"Thiết kế prompt giúp lên kế hoạch học tập 1 tuần cá nhân hóa"</h2>
+      <p>Submit prompt tốt nhất của bạn. Cộng đồng vote. 3 phiên bản chiến thắng được pin lên trang chủ + tác giả nhận badge "Crafter".</p>
+      <div class="challenge-meta">
+        <div><i class="fas fa-clock"></i> Còn 3 ngày</div>
+        <div><i class="fas fa-users"></i> 287 đã tham gia</div>
+        <div><i class="fas fa-trophy"></i> Badge + Pin</div>
+      </div>
+      <button class="btn btn-light" onclick="openChallengeModal()">
+        Tham gia ngay <i class="fas fa-fire"></i>
+      </button>
+    </div>
+
+    <div class="challenge-visual">
+      <div class="leaderboard-mini">
+        <h4>🏆 Bảng xếp hạng tuần</h4>
+        <div class="lb-entry">
+          <span class="lb-rank gold">1</span>
+          <span class="lb-name">Linh M.</span>
+          <span class="lb-score">2,840 pts</span>
+        </div>
+        <div class="lb-entry">
+          <span class="lb-rank silver">2</span>
+          <span class="lb-name">Huy Forger</span>
+          <span class="lb-score">2,310 pts</span>
+        </div>
+        <div class="lb-entry">
+          <span class="lb-rank bronze">3</span>
+          <span class="lb-name">Anh Nguyễn</span>
+          <span class="lb-score">1,985 pts</span>
+        </div>
+        <div class="lb-entry">
+          <span class="lb-rank">4</span>
+          <span class="lb-name">Minh.dev</span>
+          <span class="lb-score">1,742 pts</span>
+        </div>
+        <div class="lb-entry">
+          <span class="lb-rank">5</span>
+          <span class="lb-name">Thu.design</span>
+          <span class="lb-score">1,510 pts</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== TESTIMONIAL ====== -->
+<section class="testimonial-section">
+  <div class="testimonial">
+    <div class="quote-mark">"</div>
+    <blockquote>
+      Trước đây mình chỉ copy prompt từ TikTok. Giờ mình <em>HIỂU</em> tại sao nó hoạt động — và tự viết được prompt riêng cho công việc của mình.
+    </blockquote>
+    <div class="author-block">
+      <div class="author-avatar">L</div>
+      <div class="author-info">
+        <div class="author-name">Linh Nguyễn</div>
+        <div class="author-role">SV Marketing năm 3 · ĐH Ngoại Thương</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== FOOTER ====== -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="#" class="logo">
+          <span class="logo-mark"><i class="fas fa-hammer"></i></span>
+          PromptForge
+        </a>
+        <p>Nơi một thế hệ học cách suy nghĩ cùng AI — bằng cộng đồng, không phải bằng những mẹo viral lẻ tẻ.</p>
+      </div>
+
+      <div class="footer-col">
+        <h5>Sản phẩm</h5>
+        <a onclick="showToast('Đang chuyển hướng...', 'info')">Khám phá prompts</a>
+        <a onclick="showToast('Đang chuyển hướng...', 'info')">Lộ trình ngành</a>
+        <a onclick="showToast('Đang chuyển hướng...', 'info')">Try Live Sandbox</a>
+        <a onclick="showToast('Đang chuyển hướng...', 'info')">Thử thách tuần</a>
+      </div>
+
+      <div class="footer-col">
+        <h5>Cộng đồng</h5>
+        <a onclick="showToast('Đang chuyển hướng...', 'info')">Diễn đàn</a>
+        <a onclick="showToast('Đang chuyển hướng...', 'info')">Discord</a>
+        <a onclick="showToast('Đang chuyển hướng...', 'info')">Blog</a>
+        <a onclick="showToast('Đang chuyển hướng...', 'info')">Hall of Fame</a>
+      </div>
+
+      <div class="footer-col">
+        <h5>Hỗ trợ</h5>
+        <a onclick="showToast('Đang chuyển hướng...', 'info')">Hướng dẫn</a>
+        <a onclick="showToast('Đang chuyển hướng...', 'info')">API Docs</a>
+        <a onclick="showToast('Đang chuyển hướng...', 'info')">Liên hệ</a>
+        <a onclick="showToast('Đang chuyển hướng...', 'info')">FAQ</a>
+      </div>
+
+      <div class="newsletter">
+        <h5>Newsletter "Sparks"</h5>
+        <p>Mỗi tuần, 3 prompt tốt nhất gửi thẳng vào hộp thư của bạn.</p>
+        <form class="newsletter-form" onsubmit="subscribeNewsletter(event)">
+          <input type="email" placeholder="email@cua.ban" required>
+          <button type="submit"><i class="fas fa-paper-plane"></i></button>
+        </form>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div>© 2026 PromptForge. Made with 🔥 in Hà Nội.</div>
+      <div class="social-links">
+        <a onclick="showToast('Mở X...', 'info')"><i class="fab fa-x-twitter"></i></a>
+        <a onclick="showToast('Mở Facebook...', 'info')"><i class="fab fa-facebook-f"></i></a>
+        <a onclick="showToast('Mở Discord...', 'info')"><i class="fab fa-discord"></i></a>
+        <a onclick="showToast('Mở GitHub...', 'info')"><i class="fab fa-github"></i></a>
+        <a onclick="showToast('Mở YouTube...', 'info')"><i class="fab fa-youtube"></i></a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- ====== PROMPT DETAIL MODAL ====== -->
+<div class="modal-backdrop" id="promptModal" onclick="if(event.target===this)closeModal('promptModal')">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-head-text">
+        <div class="modal-eyebrow" id="modalEyebrow">MARKETING · ⭐ 4.9</div>
+        <h3 id="modalTitle">Phân tích SWOT đối thủ trong 5 phút</h3>
+      </div>
+      <button class="modal-close" onclick="closeModal('promptModal')"><i class="fas fa-times"></i></button>
+    </div>
+
+    <div class="modal-tabs">
+      <button class="modal-tab active" data-tab="prompt" onclick="switchTab(event, 'prompt')">
+        <i class="fas fa-scroll"></i> Prompt
+      </button>
+      <button class="modal-tab" data-tab="trylive" onclick="switchTab(event, 'trylive')">
+        <i class="fas fa-bolt"></i> Try Live
+      </button>
+      <button class="modal-tab" data-tab="forks" onclick="switchTab(event, 'forks')">
+        <i class="fas fa-code-branch"></i> Forks <span style="opacity:0.5;">(142)</span>
+      </button>
+      <button class="modal-tab" data-tab="comments" onclick="switchTab(event, 'comments')">
+        <i class="fas fa-comment"></i> Thảo luận
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <!-- TAB: PROMPT -->
+      <div class="tab-panel active" data-panel="prompt">
+        <div class="prompt-block" id="modalPromptText">
+<button class="copy-btn" onclick="copyPrompt()"><i class="fas fa-copy"></i> Copy</button>You are a senior business analyst with 15 years of experience in competitive intelligence.
+
+Given the company [INSERT_COMPETITOR], perform a structured SWOT analysis:
+1. STRENGTHS — 3 bullets, focus on differentiators
+2. WEAKNESSES — 3 bullets, evidence-based
+3. OPPORTUNITIES — 3 bullets, market trends
+4. THREATS — 3 bullets, risks
+
+For each point: cite the reasoning, avoid vague generalities.
+Output as a clean markdown table.</div>
+
+        <div class="why-block">
+          <h4>💡 Tại sao prompt này hoạt động</h4>
+          <ul class="why-list">
+            <li><strong>Role-setting cụ thể</strong> ("senior business analyst, 15 years") đẩy AI vào tone chuyên gia, giảm câu trả lời chung chung.</li>
+            <li><strong>Cấu trúc số rõ ràng</strong> (3 bullets mỗi mục) khóa output, tránh AI lan man hoặc bỏ sót.</li>
+            <li><strong>Constraint "cite the reasoning"</strong> buộc AI minh bạch logic, giúp bạn dễ kiểm tra hallucination.</li>
+            <li><strong>Format markdown table</strong> giúp tái sử dụng output ngay trong slide/báo cáo.</li>
+          </ul>
+        </div>
+
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;">
+          <button class="btn btn-ember" onclick="switchTabByName('trylive')">
+            <i class="fas fa-bolt"></i> Thử ngay
+          </button>
+          <button class="btn btn-outline" onclick="forkPrompt()">
+            <i class="fas fa-code-branch"></i> Fork & Cải tiến
+          </button>
+          <button class="btn btn-ghost" onclick="savePrompt()">
+            <i class="far fa-heart"></i> Lưu
+          </button>
+          <button class="btn btn-ghost" onclick="sharePrompt()">
+            <i class="fas fa-share-nodes"></i> Chia sẻ
+          </button>
+        </div>
+      </div>
+
+      <!-- TAB: TRY LIVE -->
+      <div class="tab-panel" data-panel="trylive">
+        <div class="trylive-controls">
+          <select class="model-select" id="modelSelect">
+            <option value="claude">🟠 Claude Opus 4.7</option>
+            <option value="gpt">🟢 GPT-5</option>
+            <option value="gemini">🔵 Gemini 2.5</option>
+          </select>
+          <button class="btn btn-ghost" style="background:var(--cream-2);">
+            <i class="fas fa-bolt" style="color:var(--ember);"></i> 8/10 lượt free hôm nay
+          </button>
+        </div>
+
+        <label style="font-size:13px;font-weight:500;color:var(--coal);display:block;margin-bottom:6px;">PROMPT</label>
+        <textarea class="input-area" id="liveInput">You are a senior business analyst...
+
+[INSERT_COMPETITOR] = Highlands Coffee</textarea>
+
+        <button class="btn btn-ember" onclick="runLive()" id="runBtn">
+          <i class="fas fa-play"></i> Chạy với Claude
+        </button>
+
+        <div class="output-area" id="liveOutput">
+          <div class="output-empty">↑ Chỉnh prompt và nhấn "Chạy" để xem AI phản hồi ngay tại đây.</div>
+        </div>
+      </div>
+
+      <!-- TAB: FORKS -->
+      <div class="tab-panel" data-panel="forks">
+        <p style="color:var(--ash);font-size:14.5px;margin-bottom:18px;">
+          142 người đã fork và cải tiến prompt này. Dưới đây là 3 phiên bản được vote cao nhất:
+        </p>
+
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="background:var(--cream-2);border-radius:12px;padding:18px;border-left:3px solid var(--ember);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div class="pc-avatar">H</div>
+                <strong>huy.forger</strong>
+                <span style="font-size:11px;color:var(--smoke);font-family:'JetBrains Mono',monospace;">v2 · 2 ngày trước</span>
+              </div>
+              <span style="font-size:13px;font-weight:600;color:var(--ember);">↑ 89</span>
+            </div>
+            <p style="font-size:14px;color:var(--coal);">+ Thêm constraint "include 1 source citation per claim" → giảm hallucination 40%</p>
+          </div>
+
+          <div style="background:var(--cream-2);border-radius:12px;padding:18px;border-left:3px solid var(--spark);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div class="pc-avatar">A</div>
+                <strong>anh.consult</strong>
+                <span style="font-size:11px;color:var(--smoke);font-family:'JetBrains Mono',monospace;">v3 · 5 ngày trước</span>
+              </div>
+              <span style="font-size:13px;font-weight:600;color:var(--ember);">↑ 64</span>
+            </div>
+            <p style="font-size:14px;color:var(--coal);">+ Đổi format từ markdown table sang JSON → dễ feed vào dashboard tool</p>
+          </div>
+
+          <div style="background:var(--cream-2);border-radius:12px;padding:18px;border-left:3px solid var(--smoke);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div class="pc-avatar">M</div>
+                <strong>minh.mkt</strong>
+                <span style="font-size:11px;color:var(--smoke);font-family:'JetBrains Mono',monospace;">v2 · 1 tuần trước</span>
+              </div>
+              <span style="font-size:13px;font-weight:600;color:var(--ember);">↑ 42</span>
+            </div>
+            <p style="font-size:14px;color:var(--coal);">+ Mở rộng từ SWOT sang Porter's 5 Forces — phù hợp cho phân tích sâu hơn</p>
+          </div>
+        </div>
+
+        <button class="btn btn-outline" style="margin-top:18px;" onclick="forkPrompt()">
+          <i class="fas fa-code-branch"></i> Tạo fork của bạn
+        </button>
+      </div>
+
+      <!-- TAB: COMMENTS -->
+      <div class="tab-panel" data-panel="comments">
+        <div style="display:flex;gap:12px;margin-bottom:20px;">
+          <div class="pc-avatar" style="width:36px;height:36px;font-size:14px;flex-shrink:0;">B</div>
+          <textarea class="input-area" style="min-height:70px;font-family:inherit;" placeholder="Bạn dùng prompt này có hiệu quả không? Chia sẻ kinh nghiệm..."></textarea>
+        </div>
+        <button class="btn btn-primary" onclick="showToast('💬 Bình luận đã được đăng!', 'success')">
+          Đăng bình luận
+        </button>
+
+        <div style="margin-top:30px;display:flex;flex-direction:column;gap:18px;">
+          <div style="display:flex;gap:12px;">
+            <div class="pc-avatar" style="width:36px;height:36px;font-size:14px;flex-shrink:0;">T</div>
+            <div style="flex:1;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                <strong>thu.brand</strong>
+                <span style="font-size:11px;color:var(--smoke);">3 giờ trước</span>
+              </div>
+              <p style="font-size:14px;color:var(--coal);line-height:1.55;">Dùng prompt này phân tích Phúc Long cho bài tập Marketing, prof khen có chiều sâu 🔥. Đặc biệt là phần "evidence-based" rất giúp.</p>
+              <div style="margin-top:6px;font-size:12px;color:var(--smoke);">
+                <span style="cursor:pointer;">❤ 24</span> · <span style="cursor:pointer;">Trả lời</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:12px;">
+            <div class="pc-avatar" style="width:36px;height:36px;font-size:14px;flex-shrink:0;">P</div>
+            <div style="flex:1;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                <strong>phong.startup</strong>
+                <span style="font-size:11px;color:var(--smoke);">1 ngày trước</span>
+              </div>
+              <p style="font-size:14px;color:var(--coal);line-height:1.55;">Gợi ý: trước khi insert tên đối thủ, hãy paste vào AI một đoạn ngắn về industry context. Output sẽ chính xác hơn nhiều.</p>
+              <div style="margin-top:6px;font-size:12px;color:var(--smoke);">
+                <span style="cursor:pointer;">❤ 18</span> · <span style="cursor:pointer;">Trả lời</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== LOGIN MODAL ====== -->
+<div class="modal-backdrop" id="loginModal" onclick="if(event.target===this)closeModal('loginModal')">
+  <div class="modal modal-small">
+    <div class="modal-head">
+      <div class="modal-head-text">
+        <div class="modal-eyebrow">CHÀO MỪNG TRỞ LẠI 🔥</div>
+        <h3>Đăng nhập</h3>
+      </div>
+      <button class="modal-close" onclick="closeModal('loginModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <form class="auth-form" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" required placeholder="ban@email.com">
+        </div>
+        <div class="form-group">
+          <label>Mật khẩu</label>
+          <input type="password" required placeholder="••••••••">
+        </div>
+        <button type="submit" class="btn btn-ember" style="justify-content:center;padding:13px;">
+          Đăng nhập <i class="fas fa-arrow-right"></i>
+        </button>
+
+        <div class="auth-divider">hoặc</div>
+
+        <div class="social-auth">
+          <button type="button" class="social-btn" onclick="showToast('🔗 Đang kết nối Google...', 'info')">
+            <i class="fab fa-google" style="color:#DB4437;"></i> Google
+          </button>
+          <button type="button" class="social-btn" onclick="showToast('🔗 Đang kết nối GitHub...', 'info')">
+            <i class="fab fa-github"></i> GitHub
+          </button>
+        </div>
+
+        <div class="auth-switch">
+          Chưa có tài khoản?
+          <a onclick="closeModal('loginModal'); setTimeout(()=>openModal('signupModal'), 300)">Đăng ký miễn phí</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ====== SIGNUP MODAL ====== -->
+<div class="modal-backdrop" id="signupModal" onclick="if(event.target===this)closeModal('signupModal')">
+  <div class="modal modal-small">
+    <div class="modal-head">
+      <div class="modal-head-text">
+        <div class="modal-eyebrow">MIỄN PHÍ MÃI MÃI</div>
+        <h3>Bắt đầu rèn prompt</h3>
+      </div>
+      <button class="modal-close" onclick="closeModal('signupModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <form class="auth-form" onsubmit="handleSignup(event)">
+        <div class="form-group">
+          <label>Tên hiển thị</label>
+          <input type="text" required placeholder="Linh Nguyễn">
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" required placeholder="ban@email.com">
+        </div>
+        <div class="form-group">
+          <label>Bạn là ai?</label>
+          <select class="model-select" required>
+            <option value="">-- Chọn vai trò --</option>
+            <option>🎓 Sinh viên</option>
+            <option>📣 Marketer</option>
+            <option>💻 Developer</option>
+            <option>🎨 Designer</option>
+            <option>💼 Đang đi làm khác</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-ember" style="justify-content:center;padding:13px;">
+          Tạo tài khoản miễn phí <i class="fas fa-fire"></i>
+        </button>
+        <p style="font-size:12px;color:var(--smoke);text-align:center;line-height:1.5;">
+          Không thẻ tín dụng. Không spam. 10 lượt Try Live free mỗi ngày.
+        </p>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ====== CHALLENGE SUBMIT MODAL ====== -->
+<div class="modal-backdrop" id="challengeModal" onclick="if(event.target===this)closeModal('challengeModal')">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-head-text">
+        <div class="modal-eyebrow">THỬ THÁCH TUẦN 21</div>
+        <h3>Lên kế hoạch học tập 1 tuần cá nhân hóa</h3>
+      </div>
+      <button class="modal-close" onclick="closeModal('challengeModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="why-block" style="margin-bottom:24px;">
+        <h4>📋 Yêu cầu</h4>
+        <ul class="why-list">
+          <li>Prompt phải tạo được kế hoạch 7 ngày dựa trên đầu vào: môn học + thời gian rảnh + mục tiêu.</li>
+          <li>Output phải có cấu trúc, dễ in/lưu lại.</li>
+          <li>Bao gồm phần "Tại sao prompt này hoạt động" (tối thiểu 2 điểm).</li>
+        </ul>
+      </div>
+
+      <label style="font-size:13px;font-weight:500;color:var(--coal);display:block;margin-bottom:6px;">TIÊU ĐỀ PROMPT</label>
+      <input type="text" class="input-area" style="min-height:auto;font-family:inherit;" placeholder="VD: Lộ trình học cá nhân hóa cho sinh viên năm 2">
+
+      <label style="font-size:13px;font-weight:500;color:var(--coal);display:block;margin:14px 0 6px;">NỘI DUNG PROMPT</label>
+      <textarea class="input-area" style="min-height:140px;" placeholder="You are a learning coach..."></textarea>
+
+      <button class="btn btn-ember" style="margin-top:10px;" onclick="submitChallenge()">
+        <i class="fas fa-paper-plane"></i> Submit thử thách
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ====== TOAST CONTAINER ====== -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+  // ============ DATA ============
+  const PROMPTS = [
+    { id: 1, cat: 'marketing', icon: '📊', title: 'Phân tích SWOT đối thủ trong 5 phút', desc: 'Role-setting + cấu trúc số rõ ràng giúp AI phân tích như một consultant.', tags: ['#Marketing', '#SWOT'], author: 'M', authorName: 'minh.nguyen', rating: '4.9', uses: '3.2k', color: 'var(--ember)' },
+    { id: 2, cat: 'marketing', icon: '📧', title: 'Viết email B2B chuyên nghiệp trong 30 giây', desc: 'Template với 3 biến số: mục đích, tone, đối tượng. Output luôn tự nhiên.', tags: ['#Email', '#Business'], author: 'L', authorName: 'linh.marketing', rating: '4.8', uses: '2.8k', color: 'var(--spark)' },
+    { id: 3, cat: 'study', icon: '🎓', title: 'Học khái niệm khó bằng Feynman Technique', desc: 'AI giải thích như đang dạy đứa trẻ 12 tuổi. Hiểu nhanh, nhớ lâu.', tags: ['#Study', '#Learning'], author: 'D', authorName: 'dr_huy', rating: '4.9', uses: '5.1k', color: 'var(--ember-light)' },
+    { id: 4, cat: 'dev', icon: '💻', title: 'Code review chi tiết với senior engineer', desc: 'Phân tích code theo 5 tiêu chí: readability, performance, security, scalability, testability.', tags: ['#Dev', '#CodeReview'], author: 'T', authorName: 'tuan.dev', rating: '4.7', uses: '4.3k', color: 'var(--coal)' },
+    { id: 5, cat: 'design', icon: '🎨', title: 'Brainstorm UI/UX cho landing page', desc: 'AI đóng vai Lead Designer, đề xuất 5 hướng visual khác nhau kèm reasoning.', tags: ['#Design', '#UX'], author: 'P', authorName: 'phuong.design', rating: '4.8', uses: '2.1k', color: 'var(--ember)' },
+    { id: 6, cat: 'business', icon: '💼', title: 'Lập business plan 1 trang cho startup', desc: 'Chuyển ý tưởng startup thành business plan có cấu trúc, sẵn sàng pitch.', tags: ['#Startup', '#Business'], author: 'A', authorName: 'anh.founder', rating: '4.9', uses: '6.7k', color: 'var(--spark)' },
+    { id: 7, cat: 'study', icon: '📚', title: 'Tóm tắt bài báo khoa học theo IMRaD', desc: 'Tự động trích Introduction, Methods, Results, Discussion. Lý tưởng cho luận văn.', tags: ['#Research', '#Academic'], author: 'V', authorName: 'vy.research', rating: '4.8', uses: '3.9k', color: 'var(--ember-light)' },
+    { id: 8, cat: 'marketing', icon: '📱', title: 'Content kế hoạch 30 ngày cho Instagram', desc: 'AI lên lịch posts theo content pillars, không lặp ý tưởng, có CTA cụ thể.', tags: ['#Content', '#Social'], author: 'H', authorName: 'ha.content', rating: '4.7', uses: '4.5k', color: 'var(--ember)' },
+    { id: 9, cat: 'dev', icon: '🐛', title: 'Debug code với rubber-duck explanation', desc: 'AI hỏi ngược lại bạn để buộc bạn suy nghĩ. Phát hiện bug nhanh hơn 3x.', tags: ['#Debug', '#Dev'], author: 'K', authorName: 'khoa.code', rating: '4.9', uses: '2.7k', color: 'var(--coal)' }
+  ];
+
+  const TRACKS = [
+    { emoji: '📣', name: 'Marketing', dur: '30 ngày · 4.9⭐', learners: '12,400 học viên', progress: 78 },
+    { emoji: '💻', name: 'Developer', dur: '45 ngày · 4.8⭐', learners: '8,900 học viên', progress: 65 },
+    { emoji: '🎨', name: 'Designer', dur: '30 ngày · 4.7⭐', learners: '6,200 học viên', progress: 52 },
+    { emoji: '🔬', name: 'Researcher', dur: '60 ngày · 4.9⭐', learners: '3,100 học viên', progress: 41 },
+    { emoji: '📚', name: 'Sinh viên', dur: '21 ngày · 4.8⭐', learners: '18,300 học viên', progress: 88 },
+    { emoji: '💼', name: 'Khởi nghiệp', dur: '30 ngày · 4.6⭐', learners: '4,800 học viên', progress: 47 },
+    { emoji: '✍️', name: 'Content Creator', dur: '21 ngày · 4.7⭐', learners: '7,500 học viên', progress: 62 },
+    { emoji: '📊', name: 'Phân tích DL', dur: '45 ngày · 4.8⭐', learners: '5,400 học viên', progress: 58 }
+  ];
+
+  // Simulated AI responses
+  const AI_RESPONSES = {
+    claude: `**SWOT — Highlands Coffee**
+
+| Yếu tố | Phân tích |
+|--------|-----------|
+| **Strengths** | 1. Network 600+ cửa hàng tại VN, phủ rộng nhất trong chuỗi cà phê nội. 2. Brand recognition cao trong nhóm khách văn phòng 25-45 tuổi. 3. Menu chuẩn hóa, vận hành ổn định ở mọi chi nhánh. |
+| **Weaknesses** | 1. Giá cao hơn 30-50% so với mặt bằng địa phương. 2. Khó cạnh tranh tốc độ đổi mới menu so với The Coffee House, Phúc Long. 3. Phụ thuộc lớn vào tệp khách văn phòng — dễ bị ảnh hưởng khi WFH lan rộng. |
+| **Opportunities** | 1. Mở rộng phân khúc khách trẻ Gen Z qua co-branded products. 2. Tăng kênh giao hàng — hiện chỉ chiếm <25% doanh thu. 3. Xuất khẩu mô hình ra Đông Nam Á. |
+| **Threats** | 1. Cà phê đặc sản local (specialty coffee) tăng nhanh ở phân khúc cao cấp. 2. Chi phí nhân công và thuê mặt bằng tăng mạnh post-2024. 3. Người tiêu dùng dịch chuyển sang trà sữa, matcha, đồ uống thay thế. |
+
+*Lưu ý: Các nhận định dựa trên xu hướng thị trường F&B 2024-2025. Cần cross-check với số liệu nội bộ.*`,
+    gpt: `## SWOT Analysis: Highlands Coffee
+
+**🟢 STRENGTHS**
+• Largest local coffee chain by store count in Vietnam (600+)
+• Strong brand equity in office worker segment
+• Standardized operations and consistent quality
+
+**🔴 WEAKNESSES**  
+• Premium pricing limits mass-market reach
+• Slower menu innovation vs. competitors
+• Heavy reliance on dine-in revenue
+
+**🟡 OPPORTUNITIES**
+• Untapped Gen Z segment via collabs
+• Delivery channel growth potential
+• Regional SEA expansion
+
+**🟠 THREATS**
+• Specialty coffee disruption in premium tier
+• Rising operational costs
+• Changing consumer beverage preferences`,
+    gemini: `**Highlands Coffee — Phân tích cạnh tranh**
+
+1) **STRENGTHS**
+   - Quy mô lớn nhất trong các chuỗi nội địa
+   - Vận hành chuyên nghiệp, ISO-grade
+   - Khách hàng trung thành ở tầng văn phòng
+
+2) **WEAKNESSES**
+   - Giá thành khó cạnh tranh với chuỗi local mới
+   - Trải nghiệm không gian "công nghiệp" hơn boutique cafe
+   - Menu ít thử nghiệm
+
+3) **OPPORTUNITIES**
+   - Tích hợp công nghệ — app riêng có thể tăng retention
+   - Co-working spaces partnerships
+   - Cà phê "to go" cho commuters
+
+4) **THREATS**
+   - The Coffee House, Phúc Long đang đầu tư mạnh
+   - Sự thay đổi sở thích sang đồ uống ít caffeine
+   - Áp lực giá thuê mặt bằng Q1, Q3 HCM`
+  };
+
+  // ============ RENDER ============
+  function renderPrompts(filter = 'all') {
+    const grid = document.getElementById('promptsGrid');
+    const filtered = filter === 'all' ? PROMPTS : PROMPTS.filter(p => p.cat === filter);
+    grid.innerHTML = filtered.slice(0, 6).map((p, idx) => `
+      <div class="prompt-card fade-up" style="animation-delay:${idx * 0.05}s" onclick="openPromptModal(${p.id})">
+        <div class="pc-head">
+          <div class="pc-icon">${p.icon}</div>
+          <div class="pc-rating"><i class="fas fa-star"></i> ${p.rating}</div>
+        </div>
+        <div class="pc-title">${p.title}</div>
+        <div class="pc-desc">${p.desc}</div>
+        <div class="pc-tags">
+          ${p.tags.map(t => `<span class="pc-tag">${t}</span>`).join('')}
+        </div>
+        <div class="pc-meta">
+          <div class="pc-author">
+            <div class="pc-avatar">${p.author}</div>
+            <span>${p.authorName}</span>
+          </div>
+          <div class="pc-stats">🔥 ${p.uses} uses</div>
+        </div>
+      </div>
+    `).join('');
+    if (filtered.length === 0) {
+      grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--ash);">
+        <div style="font-size:48px;margin-bottom:12px;">🔍</div>
+        <p>Chưa có prompt nào trong mục này. Hãy là người đầu tiên đóng góp!</p>
+      </div>`;
+    }
+  }
+
+  function renderTracks() {
+    const grid = document.getElementById('tracksGrid');
+    grid.innerHTML = TRACKS.map((t, idx) => `
+      <div class="track-card fade-up" style="animation-delay:${idx * 0.05}s" onclick="openTrack('${t.name}')">
+        <div class="track-emoji">${t.emoji}</div>
+        <div class="track-name">${t.name}</div>
+        <div class="track-duration">${t.dur}</div>
+        <div class="track-progress-bar"><div class="track-progress-fill" style="width:${t.progress}%;"></div></div>
+        <div class="track-learners">${t.learners}</div>
+      </div>
+    `).join('');
+  }
+
+  // ============ INTERACTIONS ============
+  function openModal(id) {
+    document.getElementById(id).classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  function openPromptModal(id) {
+    const p = PROMPTS.find(x => x.id === id);
+    if (p) {
+      document.getElementById('modalTitle').textContent = p.title;
+      document.getElementById('modalEyebrow').textContent = `${p.cat.toUpperCase()} · ⭐ ${p.rating}`;
+    }
+    // Reset to first tab
+    document.querySelectorAll('#promptModal .modal-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('#promptModal .tab-panel').forEach(t => t.classList.remove('active'));
+    document.querySelector('#promptModal .modal-tab[data-tab="prompt"]').classList.add('active');
+    document.querySelector('#promptModal .tab-panel[data-panel="prompt"]').classList.add('active');
+    openModal('promptModal');
+  }
+
+  function switchTab(e, tabName) {
+    document.querySelectorAll('#promptModal .modal-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('#promptModal .tab-panel').forEach(t => t.classList.remove('active'));
+    e.currentTarget.classList.add('active');
+    document.querySelector(`#promptModal .tab-panel[data-panel="${tabName}"]`).classList.add('active');
+  }
+
+  function switchTabByName(tabName) {
+    document.querySelectorAll('#promptModal .modal-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('#promptModal .tab-panel').forEach(t => t.classList.remove('active'));
+    document.querySelector(`#promptModal .modal-tab[data-tab="${tabName}"]`).classList.add('active');
+    document.querySelector(`#promptModal .tab-panel[data-panel="${tabName}"]`).classList.add('active');
+  }
+
+  function copyPrompt() {
+    const text = document.getElementById('modalPromptText').textContent.replace('Copy', '').trim();
+    navigator.clipboard?.writeText(text).catch(() => {});
+    showToast('📋 Đã copy prompt vào clipboard!', 'success');
+  }
+
+  function forkPrompt() {
+    showToast('🔱 Đã tạo fork! Mở editor để chỉnh sửa...', 'success');
+  }
+
+  function savePrompt() {
+    showToast('❤️ Đã lưu vào bộ sưu tập của bạn!', 'success');
+  }
+
+  function sharePrompt() {
+    showToast('🔗 Link đã được copy. Chia sẻ thôi!', 'success');
+  }
+
+  function runLive() {
+    const btn = document.getElementById('runBtn');
+    const output = document.getElementById('liveOutput');
+    const model = document.getElementById('modelSelect').value;
+    const modelLabel = document.getElementById('modelSelect').options[document.getElementById('modelSelect').selectedIndex].text;
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang chạy...';
+
+    output.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;color:var(--ash);font-size:13px;margin-bottom:14px;">
+        <strong>${modelLabel}</strong> đang phản hồi
+        <div class="typing-indicator"><span></span><span></span><span></span></div>
+      </div>
+    `;
+
+    setTimeout(() => {
+      const response = AI_RESPONSES[model] || AI_RESPONSES.claude;
+      // simple markdown to HTML
+      const html = response
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/^### (.+)$/gm, '<h4 style="font-family:Fraunces,serif;font-size:17px;margin:12px 0 6px;">$1</h4>')
+        .replace(/^## (.+)$/gm, '<h3 style="font-family:Fraunces,serif;font-size:19px;margin:14px 0 8px;">$1</h3>')
+        .replace(/^\*(.+?)\*$/gm, '<em style="color:var(--ash);font-size:13px;">$1</em>')
+        .replace(/\n\n/g, '</p><p style="margin:8px 0;">')
+        .replace(/^\| (.+) \|$/gm, (m) => `<div style="font-family:'JetBrains Mono',monospace;font-size:12.5px;padding:4px 0;border-bottom:1px solid var(--border);">${m.replace(/\|/g, '·')}</div>`);
+      output.innerHTML = `
+        <div style="font-size:12px;color:var(--smoke);margin-bottom:10px;display:flex;justify-content:space-between;">
+          <span>✨ Response from ${modelLabel}</span>
+          <span>1.8s · 247 tokens</span>
+        </div>
+        <div style="font-size:14px;line-height:1.65;color:var(--coal);"><p>${html}</p></div>
+      `;
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-redo"></i> Chạy lại';
+      showToast('⚡ Đã chạy xong! Còn 7/10 lượt hôm nay.', 'success');
+    }, 1800);
+  }
+
+  function handleLogin(e) {
+    e.preventDefault();
+    closeModal('loginModal');
+    showToast('🔥 Chào mừng trở lại! Đang vào dashboard...', 'success');
+  }
+
+  function handleSignup(e) {
+    e.preventDefault();
+    closeModal('signupModal');
+    showToast('🎉 Tài khoản đã tạo! Đang gửi onboarding email...', 'success');
+  }
+
+  function subscribeNewsletter(e) {
+    e.preventDefault();
+    e.target.querySelector('input').value = '';
+    showToast('🔥 Subscribed! Sparks tuần đầu sẽ tới vào sáng thứ Hai.', 'success');
+  }
+
+  function openChallengeModal() {
+    openModal('challengeModal');
+  }
+
+  function submitChallenge() {
+    closeModal('challengeModal');
+    showToast('🏆 Submission đã ghi nhận! Theo dõi bảng xếp hạng cuối tuần.', 'success');
+  }
+
+  function openTrack(name) {
+    showToast(`🛤 Đang mở lộ trình "${name}"...`, 'info');
+  }
+
+  function filterPrompts(e, filter) {
+    document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+    e.currentTarget.classList.add('active');
+    renderPrompts(filter);
+  }
+
+  function onSearch(e) {
+    const q = e.target.value.toLowerCase().trim();
+    if (!q) { renderPrompts('all'); return; }
+    const grid = document.getElementById('promptsGrid');
+    const filtered = PROMPTS.filter(p =>
+      p.title.toLowerCase().includes(q) ||
+      p.desc.toLowerCase().includes(q) ||
+      p.tags.some(t => t.toLowerCase().includes(q)) ||
+      p.authorName.toLowerCase().includes(q)
+    );
+    if (filtered.length === 0) {
+      grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--ash);">
+        <div style="font-size:48px;margin-bottom:12px;">🔍</div>
+        <p>Không tìm thấy prompt nào khớp "<strong>${q}</strong>".</p>
+        <p style="font-size:13px;margin-top:6px;">Thử tìm "SWOT", "email", "code review", "feynman"...</p>
+      </div>`;
+    } else {
+      grid.innerHTML = filtered.map((p, idx) => `
+        <div class="prompt-card fade-up" style="animation-delay:${idx * 0.05}s" onclick="openPromptModal(${p.id})">
+          <div class="pc-head">
+            <div class="pc-icon">${p.icon}</div>
+            <div class="pc-rating"><i class="fas fa-star"></i> ${p.rating}</div>
+          </div>
+          <div class="pc-title">${p.title}</div>
+          <div class="pc-desc">${p.desc}</div>
+          <div class="pc-tags">${p.tags.map(t => `<span class="pc-tag">${t}</span>`).join('')}</div>
+          <div class="pc-meta">
+            <div class="pc-author">
+              <div class="pc-avatar">${p.author}</div>
+              <span>${p.authorName}</span>
+            </div>
+            <div class="pc-stats">🔥 ${p.uses} uses</div>
+          </div>
+        </div>
+      `).join('');
+    }
+  }
+
+  function onSearchEnter(e) {
+    if (e.key === 'Enter') {
+      document.getElementById('featured').scrollIntoView({ behavior: 'smooth' });
+    }
+  }
+
+  function scrollToSection(id) {
+    document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function scrollToTop(e) {
+    e.preventDefault();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function navClick(e, section) {
+    e.preventDefault();
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    e.currentTarget.classList.add('active');
+    const map = {
+      home: 'featured',
+      tracks: 'tracks-section',
+      community: 'how',
+      challenge: 'challenge-section'
+    };
+    const target = document.getElementById(map[section]);
+    if (target) target.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  // ============ TOAST ============
+  function showToast(msg, type = 'info') {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    const icon = type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-times-circle' : 'fa-info-circle';
+    toast.innerHTML = `<i class="fas ${icon}"></i> <span>${msg}</span>`;
+    container.appendChild(toast);
+    setTimeout(() => {
+      toast.classList.add('removing');
+      setTimeout(() => toast.remove(), 300);
+    }, 3200);
+  }
+
+  // ============ ESC TO CLOSE ============
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal-backdrop.active').forEach(m => m.classList.remove('active'));
+      document.body.style.overflow = '';
+    }
+  });
+
+  // ============ INIT ============
+  renderPrompts();
+  renderTracks();
+
+  // Welcome toast after load
+  setTimeout(() => {
+    showToast('👋 Chào! Click bất kỳ prompt card nào để xem demo tương tác.', 'info');
+  }, 1500);
+</script>
+
+</body>
+</html>
